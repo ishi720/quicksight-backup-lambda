@@ -13,8 +13,6 @@ quicksight = boto3.client("quicksight", region_name=REGION)
 s3 = boto3.client("s3")
 
 def lambda_handler(event, context):
-    timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-
     # 分析(Analysis)のバックアップ
     analyses = quicksight.list_analyses(AwsAccountId=ACCOUNT_ID)
     for analysis in analyses.get("AnalysisSummaryList", []):
@@ -23,7 +21,7 @@ def lambda_handler(event, context):
             AwsAccountId=ACCOUNT_ID,
             AnalysisId=analysis_id
         )
-        key = f"{S3_PREFIX}analysis/{timestamp}/analysis_{analysis_id}.json"
+        key = f"{S3_PREFIX}analysis/analysis_{analysis_id}.json"
         s3.put_object(
             Bucket=S3_BUCKET,
             Key=key,
