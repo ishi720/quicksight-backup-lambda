@@ -13,6 +13,11 @@ AWS Lambdaにコードをデプロイする
 
 `quicksight-backup`という名前で関数を作成する
 
+
+## ランタイム設定
+
+AWS上のlambda関数でハンドラを`quicksight_backup.main.lambda_handler`に変更する
+
 ## デプロイする
 
 Githubのmainブランチにpushする
