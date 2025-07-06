@@ -40,4 +40,4 @@ jobs:
       run: |
         aws lambda update-function-configuration \
           --function-name quicksight-backup \
-          --handler quicksight_backup.main.lambda_handler
+          --handler quicksight_backup.main.handler
