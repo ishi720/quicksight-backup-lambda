@@ -1,6 +1,5 @@
 import boto3
 import json
-import datetime
 import os
 
 # S3設定（環境変数から取得）
