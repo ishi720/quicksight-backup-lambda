@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM Role and Policy for QuickSight + Lambda to perform backups to S3
+
+Parameters:
+  BackupBucketName:
+    Type: String
+    Description: S3 bucket name used for QuickSight backup
+
+Resources:
+  QuickSightBackupRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: quicksight-backup-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - quicksight.amazonaws.com
+                - lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  QuickSightBackupPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: quicksight-backup-policy
+      Roles:
+        - !Ref QuickSightBackupRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowQuickSightReadAccess
+            Effect: Allow
+            Action:
+              - quicksight:ListAnalyses
+              - quicksight:DescribeAnalysis
+              - quicksight:ListDataSets
+              - quicksight:DescribeDataSet
+            Resource: "*"
+          - Sid: AllowS3PutObjectForBackup
+            Effect: Allow
+            Action:
+              - s3:PutObject
+            Resource:
+              Fn::Sub: arn:aws:s3:::${BackupBucketName}/*
