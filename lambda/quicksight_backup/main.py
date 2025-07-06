@@ -38,17 +38,22 @@ def lambda_handler(event, context):
     analyses = quicksight.list_analyses(AwsAccountId=ACCOUNT_ID)
     for analysis in analyses.get("AnalysisSummaryList", []):
         analysis_id = analysis["AnalysisId"]
-        response = quicksight.describe_analysis(
-            AwsAccountId=ACCOUNT_ID,
-            AnalysisId=analysis_id
-        )
-        key = f"{S3_PREFIX}analysis/analysis_{analysis_id}.json"
-        s3.put_object(
-            Bucket=S3_BUCKET,
-            Key=key,
-            Body=json.dumps(response, indent=2, default=str),
-            ContentType="application/json"
-        )
+        try:
+            response = quicksight.describe_analysis(
+                AwsAccountId=ACCOUNT_ID,
+                AnalysisId=analysis_id
+            )
+            key = f"{S3_PREFIX}analysis/analysis_{analysis_id}.json"
+            s3.put_object(
+                Bucket=S3_BUCKET,
+                Key=key,
+                Body=json.dumps(response, indent=2, default=str),
+                ContentType="application/json"
+            )
+        except quicksight.exceptions.InvalidParameterValueException as e:
+            print(f"[Skip] 非対応分析: {analysis_id} - {e}")
+        except Exception as e:
+            print(f"[Error] 分析取得失敗: {analysis_id} - {e}")
 
     return {
         "statusCode": 200,
