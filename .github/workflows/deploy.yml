@@ -35,3 +35,9 @@ jobs:
         aws lambda update-function-code \
           --function-name quicksight-backup \
           --zip-file fileb://function.zip
+
+    - name: Set handler
+      run: |
+        aws lambda update-function-configuration \
+          --function-name quicksight-backup \
+          --handler quicksight_backup.main.handler
