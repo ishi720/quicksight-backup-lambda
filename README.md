@@ -1,6 +1,6 @@
-AWS Lambdaにコードをデプロイする
+QuickSightの分析とデータセットの設定をLambdaでバックアップする
 
-# セットアップ
+# 初期設定
 
 ## アクセスキーの設定
 
@@ -11,8 +11,8 @@ AWS Lambdaにコードをデプロイする
 
 ## lambdaに関数を作成する
 
-`quicksight-backup`という名前で関数を作成する
+- `quicksight-backup`という名前で関数を作成する
 
-## デプロイする
+# デプロイ
 
-Githubのmainブランチにpushする
+- Githubのmainブランチにpushする
