@@ -1,5 +1,10 @@
 QuickSightの分析とデータセットの設定をLambdaでバックアップする
 
+# システム構成図
+
+![quicksight-backup-lambda](https://github.com/user-attachments/assets/2361b46e-ab8c-49d9-aa0f-7732bd9c1718)
+
+
 # 初期設定
 
 ## アクセスキーの設定
