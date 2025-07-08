@@ -1,0 +1,12 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda function for QuickSight backup
+
+Resources:
+  QuicksightBackupFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: quicksight-backup2
+      Runtime: python3.13
+      Handler: lambda_function.lambda_handler
+      Timeout: 300
+      MemorySize: 128
