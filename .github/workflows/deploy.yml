@@ -36,6 +36,7 @@ jobs:
           --template-file templates/iam-role-policy.yaml \
           --stack-name quicksight-backup-role-stack \
           --capabilities CAPABILITY_NAMED_IAM
+          --parameter-overrides BackupBucketName=${{ secrets.BACKUP_BUCKET_NAME }}
 
     - name: Deploy Lambda code
       run: |
