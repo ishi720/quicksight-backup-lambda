@@ -1,6 +1,11 @@
 import boto3
 import json
 import os
+import logging
+
+# ロガー設定
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 # S3設定（環境変数から取得）
 S3_BUCKET = os.environ.get("S3_BUCKET_NAME")
@@ -13,7 +18,7 @@ s3 = boto3.client("s3")
 
 def lambda_handler(event, context):
     # データセット(DataSet)のバックアップ
-    print(f"- データセットのバックアップ開始 -")
+    logger.info("- データセットのバックアップ開始 -")
     datasets = quicksight.list_data_sets(AwsAccountId=ACCOUNT_ID)
     for dataset in datasets.get("DataSetSummaries", []):
         dataset_id = dataset["DataSetId"]
@@ -30,15 +35,15 @@ def lambda_handler(event, context):
                 Body=json.dumps(response, indent=2, default=str),
                 ContentType="application/json"
             )
-            print(f"[Success] 「{dataset_name}({dataset_id})」 > {key}")
+            logger.info(f"[Success] 「{dataset_name}({dataset_id})」 > {key}")
         except quicksight.exceptions.InvalidParameterValueException as e:
-            print(f"[Skip] 「{dataset_name}({dataset_id})」 - {e}")
+            logger.warning(f"[Skip] 「{dataset_name}({dataset_id})」 - {e}")
         except Exception as e:
-            print(f"[Error] 「{dataset_name}({dataset_id})」 - {e}")
-    print(f"- データセットのバックアップ終了 -")
+            logger.error(f"[Error] 「{dataset_name}({dataset_id})」 - {e}")
+    logger.info("- データセットのバックアップ終了 -")
 
     # 分析(Analysis)のバックアップ
-    print(f"- 分析のバックアップ開始 -")
+    logger.info("- 分析のバックアップ開始 -")
     analyses = quicksight.list_analyses(AwsAccountId=ACCOUNT_ID)
     for analysis in analyses.get("AnalysisSummaryList", []):
         analysis_id = analysis["AnalysisId"]
@@ -55,12 +60,12 @@ def lambda_handler(event, context):
                 Body=json.dumps(response, indent=2, default=str),
                 ContentType="application/json"
             )
-            print(f"[Success] 「{analysis_name}({analysis_id})」 > {key}")
+            logger.info(f"[Success] 「{analysis_name}({analysis_id})」 > {key}")
         except quicksight.exceptions.InvalidParameterValueException as e:
-            print(f"[Skip] 「{analysis_name}({analysis_id})」 - {e}")
+            logger.warning(f"[Skip] 「{analysis_name}({analysis_id})」 - {e}")
         except Exception as e:
-            print(f"[Error] 「{analysis_name}({analysis_id})」 - {e}")
-    print(f"- 分析のバックアップ終了 -")
+            logger.error(f"[Error] 「{analysis_name}({analysis_id})」 - {e}")
+    logger.info("- 分析のバックアップ終了 -")
 
     return {
         "statusCode": 200,
