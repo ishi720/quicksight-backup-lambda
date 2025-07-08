@@ -30,13 +30,20 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ap-northeast-1
 
-    - name: Deploy to Lambda
+    - name: Deploy IAM role and policy via CloudFormation
+      run: |
+        aws cloudformation deploy \
+          --template-file quicksight-backup-lambda/templates/iam-role-policy.yaml \
+          --stack-name quicksight-backup-role-stack \
+          --capabilities CAPABILITY_NAMED_IAM
+
+    - name: Deploy Lambda code
       run: |
         aws lambda update-function-code \
           --function-name quicksight-backup \
           --zip-file fileb://function.zip
 
-    - name: Set handler
+    - name: Update Lambda handler (optional if unchanged)
       run: |
         aws lambda update-function-configuration \
           --function-name quicksight-backup \
