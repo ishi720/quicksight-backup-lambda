@@ -8,8 +8,7 @@ QuickSightの分析とデータセットの設定をLambdaでバックアップ�
 
 # システム構成図
 
-![quicksight-backup-lambda](https://github.com/user-attachments/assets/2361b46e-ab8c-49d9-aa0f-7732bd9c1718)
-
+![quicksight-backup-lambda](https://github.com/user-attachments/assets/83537ab4-c13d-4663-a69e-6ce8570f20c0)
 
 # 初期設定
 
