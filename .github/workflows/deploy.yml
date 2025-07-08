@@ -44,6 +44,11 @@ jobs:
           --function-name quicksight-backup \
           --zip-file fileb://function.zip
 
+    - name: Wait for function update to complete
+      run: |
+        echo "Waiting for Lambda update to finish..."
+        sleep 10
+
     - name: Update Lambda handler (optional if unchanged)
       run: |
         aws lambda update-function-configuration \
