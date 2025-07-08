@@ -33,7 +33,7 @@ jobs:
     - name: Deploy IAM role and policy via CloudFormation
       run: |
         aws cloudformation deploy \
-          --template-file quicksight-backup-lambda/templates/iam-role-policy.yaml \
+          --template-file templates/iam-role-policy.yaml \
           --stack-name quicksight-backup-role-stack \
           --capabilities CAPABILITY_NAMED_IAM
 
