@@ -18,6 +18,7 @@ QuickSightの分析とデータセットの設定をLambdaでバックアップ�
 - `Settings` > `Secrets and variables` > `Actions` > `New repository secret`で下記を設定を行う
     - `AWS_ACCESS_KEY_ID`
     - `AWS_SECRET_ACCESS_KEY`
+    - `BACKUP_BUCKET_NAME`
 
 ## lambdaに関数を作成する
 
