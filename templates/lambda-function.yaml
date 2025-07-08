@@ -1,11 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Lambda function for QuickSight backup
 
-Parameters:
-  LambdaExecutionRoleArn:
-    Type: String
-    Description: ARN of the IAM role to be assumed by Lambda function
-
 Resources:
   QuicksightBackupFunction:
     Type: AWS::Lambda::Function
@@ -15,7 +10,7 @@ Resources:
       Handler: lambda_function.lambda_handler
       Timeout: 300
       MemorySize: 128
-      Role: !Ref LambdaExecutionRoleArn
+      Role: !ImportValue QuickSightBackupRoleArn
       Code:
         ZipFile: |
           def lambda_handler(event, context):

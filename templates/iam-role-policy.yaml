@@ -46,3 +46,10 @@ Resources:
               - s3:PutObject
             Resource:
               Fn::Sub: arn:aws:s3:::${BackupBucketName}/*
+
+Outputs:
+  LambdaRoleArn:
+    Description: ARN of the Lambda IAM role
+    Value: !GetAtt QuickSightBackupRole.Arn
+    Export:
+      Name: QuickSightBackupRoleArn

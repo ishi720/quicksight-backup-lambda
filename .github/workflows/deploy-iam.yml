@@ -39,9 +39,17 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-1
 
+      - name: Get Lambda Role ARN from IAM stack
+        id: get-role-arn
+        run: |
+          ROLE_ARN=$(aws cloudformation describe-stacks --stack-name quicksight-backup-role-stack \
+            --query "Stacks[0].Outputs[?OutputKey=='LambdaRoleArn'].OutputValue" --output text)
+          echo "ROLE_ARN=$ROLE_ARN" >> $GITHUB_ENV
+
       - name: Deploy Lambda via CloudFormation
         run: |
           aws cloudformation deploy \
             --template-file templates/lambda-function.yaml \
             --stack-name quicksight-backup-function-stack \
-            --capabilities CAPABILITY_NAMED_IAM
+            --capabilities CAPABILITY_NAMED_IAM \
+            --parameter-overrides LambdaExecutionRoleArn=$ROLE_ARN
