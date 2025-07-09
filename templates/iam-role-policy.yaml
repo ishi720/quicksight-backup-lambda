@@ -45,7 +45,9 @@ Resources:
             Action:
               - s3:PutObject
             Resource:
-              Fn::Sub: arn:aws:s3:::${BackupBucketName}/*
+              Fn::Sub:
+                - arn:aws:s3:::${BucketName}/*
+                - BucketName: !ImportValue BackupBucketName
 
 Outputs:
   LambdaRoleArn:

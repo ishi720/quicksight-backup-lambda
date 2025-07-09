@@ -1,0 +1,18 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 bucket for QuickSight backup
+
+Parameters:
+  BackupBucketName:
+    Type: String
+    Description: The name of the S3 bucket
+
+Resources:
+  QuicksightBackupBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BackupBucketName
+
+Outputs:
+  BackupBucketName:
+    Description: Name of the backup bucket
+    Value: !Ref QuicksightBackupBucket
