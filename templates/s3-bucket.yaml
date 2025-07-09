@@ -11,6 +11,8 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref BackupBucketName
+      VersioningConfiguration:
+        Status: Enabled
 
 Outputs:
   BackupBucketName:
