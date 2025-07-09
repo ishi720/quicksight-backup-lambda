@@ -26,4 +26,21 @@ QuickSightの分析とデータセットの設定をLambdaでバックアップ�
 
 # デプロイ
 
-- Githubのmainブランチにpushする
+### Lambdaのコードのみをデプロイ
+
+GitHub Actionsで「Deploy Lambda Function」のワークフローの実施
+
+詳細
+
+- Lambdaの関数のみ更新
+
+### AWS CloudFormationでセットアップ
+
+GitHub Actionsで「Deploy CloudFormation」のワークフローの実施
+
+詳細
+
+- S3バケットの作成
+- IAMロール・ポリシーの作成
+- Lambda関数の作成（未完成）
+- EventBridgeの作成（未完成）
