@@ -47,7 +47,7 @@ Resources:
             Resource:
               Fn::Sub:
                 - arn:aws:s3:::${BucketName}/*
-                - BucketName: !ImportValue BackupBucketName
+                - BucketName: !Ref BackupBucketName
 
 Outputs:
   LambdaRoleArn:
