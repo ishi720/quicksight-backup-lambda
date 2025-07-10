@@ -41,6 +41,8 @@ Resources:
               - quicksight:DescribeDataSet
               - quicksight:ListDataSources
               - quicksight:DescribeDataSource
+              - quicksight:ListDashboards
+              - quicksight:DescribeDashboard
             Resource: "*"
           - Sid: AllowS3PutObjectForBackup
             Effect: Allow

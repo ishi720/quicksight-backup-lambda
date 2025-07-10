@@ -93,6 +93,31 @@ def lambda_handler(event, context):
             logger.error(f"[Error] 「{analysis_name}({analysis_id})」 - {e}")
     logger.info("- 分析のバックアップ終了 -")
 
+    # ダッシュボード(Dashboard)のバックアップ
+    logger.info("- ダッシュボードのバックアップ開始 -")
+    dashboards = quicksight.list_dashboards(AwsAccountId=ACCOUNT_ID)
+    for dashboard in dashboards.get("DashboardSummaryList", []):
+        dashboard_id = dashboard["DashboardId"]
+        dashboard_name = dashboard.get("Name", "Unknown")
+        try:
+            response = quicksight.describe_dashboard(
+                AwsAccountId=ACCOUNT_ID,
+                DashboardId=dashboard_id
+            )
+            key = f"{S3_PREFIX}dashboard/dashboard_{dashboard_id}.json"
+            s3.put_object(
+                Bucket=S3_BUCKET,
+                Key=key,
+                Body=json.dumps(response, indent=2, default=str),
+                ContentType="application/json"
+            )
+            logger.info(f"[Success] 「{dashboard_name}({dashboard_id})」 > {key}")
+        except quicksight.exceptions.InvalidParameterValueException as e:
+            logger.warning(f"[Skip] 「{dashboard_name}({dashboard_id})」 - {e}")
+        except Exception as e:
+            logger.error(f"[Error] 「{dashboard_name}({dashboard_id})」 - {e}")
+    logger.info("- ダッシュボードのバックアップ終了 -")
+
     return {
         "statusCode": 200,
         "body": json.dumps("QuickSight backup completed.")
