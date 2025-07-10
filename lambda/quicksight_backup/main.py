@@ -16,6 +16,31 @@ ACCOUNT_ID = os.environ.get("AWS_ACCOUNT_ID")
 quicksight = boto3.client("quicksight", region_name=REGION)
 s3 = boto3.client("s3")
 
+def upload_to_s3(category, item_id, content, name):
+    """
+    指定されたQuickSightリソースの情報をS3バケットにJSON形式でアップロードする
+
+    Parameters:
+        category (str): リソースのカテゴリ（例: "datasource", "dataset", "analysis", "dashboard"）
+        item_id (str): リソースの一意なID
+        content (dict): アップロード対象のJSONデータ（describe_xxxのレスポンス）
+        name (str): 表示名
+
+    Raises:
+        boto3.exceptions.Boto3Error: S3アップロードに失敗した場合にログにエラーを記録する
+    """
+    key = f"{S3_PREFIX}{category}/{category}_{item_id}.json"
+    try:
+        s3.put_object(
+            Bucket=S3_BUCKET,
+            Key=key,
+            Body=json.dumps(content, indent=2, default=str),
+            ContentType="application/json"
+        )
+        logger.info(f"[Success] 「{name}({item_id})」 > {key}")
+    except Exception as e:
+        logger.error(f"[Error] S3 upload failed for 「{name}({item_id})」 - {e}")
+
 def lambda_handler(event, context):
     # データソース（Data Source）のバックアップ
     logger.info("- データソースのバックアップ開始 -")
@@ -28,14 +53,7 @@ def lambda_handler(event, context):
                 AwsAccountId=ACCOUNT_ID,
                 DataSourceId=datasource_id
             )
-            key = f"{S3_PREFIX}datasource/datasource_{datasource_id}.json"
-            s3.put_object(
-                Bucket=S3_BUCKET,
-                Key=key,
-                Body=json.dumps(response, indent=2, default=str),
-                ContentType="application/json"
-            )
-            logger.info(f"[Success] 「{datasource_name}({datasource_id})」 > {key}")
+            upload_to_s3("datasource", datasource_id, response, datasource_name)
         except quicksight.exceptions.InvalidParameterValueException as e:
             logger.warning(f"[Skip] 「{datasource_name}({datasource_id})」 - {e}")
         except Exception as e:
@@ -54,14 +72,7 @@ def lambda_handler(event, context):
                 AwsAccountId=ACCOUNT_ID,
                 DataSetId=dataset_id
             )
-            key = f"{S3_PREFIX}dataset/dataset_{dataset_id}.json"
-            s3.put_object(
-                Bucket=S3_BUCKET,
-                Key=key,
-                Body=json.dumps(response, indent=2, default=str),
-                ContentType="application/json"
-            )
-            logger.info(f"[Success] 「{dataset_name}({dataset_id})」 > {key}")
+            upload_to_s3("dataset", dataset_id, response, dataset_name)
         except quicksight.exceptions.InvalidParameterValueException as e:
             logger.warning(f"[Skip] 「{dataset_name}({dataset_id})」 - {e}")
         except Exception as e:
@@ -79,14 +90,7 @@ def lambda_handler(event, context):
                 AwsAccountId=ACCOUNT_ID,
                 AnalysisId=analysis_id
             )
-            key = f"{S3_PREFIX}analysis/analysis_{analysis_id}.json"
-            s3.put_object(
-                Bucket=S3_BUCKET,
-                Key=key,
-                Body=json.dumps(response, indent=2, default=str),
-                ContentType="application/json"
-            )
-            logger.info(f"[Success] 「{analysis_name}({analysis_id})」 > {key}")
+            upload_to_s3("analysis", analysis_id, response, analysis_name)
         except quicksight.exceptions.InvalidParameterValueException as e:
             logger.warning(f"[Skip] 「{analysis_name}({analysis_id})」 - {e}")
         except Exception as e:
@@ -104,14 +108,7 @@ def lambda_handler(event, context):
                 AwsAccountId=ACCOUNT_ID,
                 DashboardId=dashboard_id
             )
-            key = f"{S3_PREFIX}dashboard/dashboard_{dashboard_id}.json"
-            s3.put_object(
-                Bucket=S3_BUCKET,
-                Key=key,
-                Body=json.dumps(response, indent=2, default=str),
-                ContentType="application/json"
-            )
-            logger.info(f"[Success] 「{dashboard_name}({dashboard_id})」 > {key}")
+            upload_to_s3("dashboard", dashboard_id, response, dashboard_name)
         except quicksight.exceptions.InvalidParameterValueException as e:
             logger.warning(f"[Skip] 「{dashboard_name}({dashboard_id})」 - {e}")
         except Exception as e:
