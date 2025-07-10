@@ -6,7 +6,7 @@ Resources:
     Type: AWS::Events::Rule
     Properties:
       Name: quicksight-backup
-      Description: Run quicksight-backup2 Lambda function daily at 12:00 JST
+      Description: Run quicksight-backup Lambda function daily at 12:00 JST
       ScheduleExpression: cron(0 3 * * ? *)
       State: ENABLED
       Targets:
@@ -21,3 +21,10 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: events.amazonaws.com
       SourceArn: !GetAtt QuickSightBackupScheduleRule.Arn
+
+Outputs:
+  QuickSightBackupScheduleRuleArn:
+    Description: ARN of the EventBridge rule
+    Value: !Ref QuickSightBackupScheduleRule
+    Export:
+      Name: QuickSightBackupScheduleRuleArn
