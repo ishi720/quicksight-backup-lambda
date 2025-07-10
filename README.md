@@ -20,10 +20,6 @@ QuickSightの分析とデータセットの設定をLambdaでバックアップ�
     - `AWS_SECRET_ACCESS_KEY`
     - `BACKUP_BUCKET_NAME`
 
-## lambdaに関数を作成する
-
-- `quicksight-backup`という名前で関数を作成する
-
 # デプロイ
 
 ### Lambdaのコードのみをデプロイ
