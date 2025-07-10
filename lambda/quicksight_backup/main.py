@@ -41,79 +41,75 @@ def upload_to_s3(category, item_id, content, name):
     except Exception as e:
         logger.error(f"[Error] S3 upload failed for 「{name}({item_id})」 - {e}")
 
+def backup_quicksight_resource(category, list_func_name, list_key, describe_func_name, id_key, name_key="Name"):
+    """
+    QuickSightリソースの一覧取得とS3バックアップを行う
+
+    Parameters:
+        category (str): リソースの種類（例: 'dataset'）
+        list_func_name (str): 一覧取得API名（例: 'list_data_sets'）
+        list_key (str): 一覧レスポンスのキー（例: 'DataSetSummaries'）
+        describe_func_name (str): 詳細取得API名（例: 'describe_data_set'）
+        id_key (str): IDフィールドのキー（例: 'DataSetId'）
+        name_key (str): 名前フィールドのキー（例: 'Name'）
+    """
+    logger.info(f"- {category.capitalize()} のバックアップ開始 -")
+
+    try:
+        list_func = getattr(quicksight, list_func_name)
+        describe_func = getattr(quicksight, describe_func_name)
+    except AttributeError as e:
+        logger.error(f"[Error] API関数の取得に失敗しました: {e}")
+        return
+
+    try:
+        resources = list_func(AwsAccountId=ACCOUNT_ID).get(list_key, [])
+    except Exception as e:
+        logger.error(f"[Error] {category.capitalize()}一覧の取得に失敗しました: {e}")
+        return
+
+    for item in resources:
+        item_id = item.get(id_key)
+        item_name = item.get(name_key, "Unknown")
+        try:
+            response = describe_func(AwsAccountId=ACCOUNT_ID, **{id_key: item_id})
+            upload_to_s3(category, item_id, response, item_name)
+        except quicksight.exceptions.InvalidParameterValueException as e:
+            logger.warning(f"[Skip] 「{item_name}({item_id})」 - {e}")
+        except Exception as e:
+            logger.error(f"[Error] 「{item_name}({item_id})」 - {e}")
+    logger.info(f"- {category.capitalize()} のバックアップ終了 -")
+
+
 def lambda_handler(event, context):
-    # データソース（Data Source）のバックアップ
-    logger.info("- データソースのバックアップ開始 -")
-    datasources = quicksight.list_data_sources(AwsAccountId=ACCOUNT_ID)
-    for datasource in datasources.get("DataSources", []):
-        datasource_id = datasource["DataSourceId"]
-        datasource_name = datasource.get("Name", "Unknown")
-        try:
-            response = quicksight.describe_data_source(
-                AwsAccountId=ACCOUNT_ID,
-                DataSourceId=datasource_id
-            )
-            upload_to_s3("datasource", datasource_id, response, datasource_name)
-        except quicksight.exceptions.InvalidParameterValueException as e:
-            logger.warning(f"[Skip] 「{datasource_name}({datasource_id})」 - {e}")
-        except Exception as e:
-            logger.error(f"[Error] 「{datasource_name}({datasource_id})」 - {e}")
-    logger.info("- データソースのバックアップ終了 -")
-
-
-    # データセット(DataSet)のバックアップ
-    logger.info("- データセットのバックアップ開始 -")
-    datasets = quicksight.list_data_sets(AwsAccountId=ACCOUNT_ID)
-    for dataset in datasets.get("DataSetSummaries", []):
-        dataset_id = dataset["DataSetId"]
-        dataset_name = dataset.get("Name", "Unknown")
-        try:
-            response = quicksight.describe_data_set(
-                AwsAccountId=ACCOUNT_ID,
-                DataSetId=dataset_id
-            )
-            upload_to_s3("dataset", dataset_id, response, dataset_name)
-        except quicksight.exceptions.InvalidParameterValueException as e:
-            logger.warning(f"[Skip] 「{dataset_name}({dataset_id})」 - {e}")
-        except Exception as e:
-            logger.error(f"[Error] 「{dataset_name}({dataset_id})」 - {e}")
-    logger.info("- データセットのバックアップ終了 -")
-
-    # 分析(Analysis)のバックアップ
-    logger.info("- 分析のバックアップ開始 -")
-    analyses = quicksight.list_analyses(AwsAccountId=ACCOUNT_ID)
-    for analysis in analyses.get("AnalysisSummaryList", []):
-        analysis_id = analysis["AnalysisId"]
-        analysis_name = analysis.get("Name", "Unknown")
-        try:
-            response = quicksight.describe_analysis(
-                AwsAccountId=ACCOUNT_ID,
-                AnalysisId=analysis_id
-            )
-            upload_to_s3("analysis", analysis_id, response, analysis_name)
-        except quicksight.exceptions.InvalidParameterValueException as e:
-            logger.warning(f"[Skip] 「{analysis_name}({analysis_id})」 - {e}")
-        except Exception as e:
-            logger.error(f"[Error] 「{analysis_name}({analysis_id})」 - {e}")
-    logger.info("- 分析のバックアップ終了 -")
-
-    # ダッシュボード(Dashboard)のバックアップ
-    logger.info("- ダッシュボードのバックアップ開始 -")
-    dashboards = quicksight.list_dashboards(AwsAccountId=ACCOUNT_ID)
-    for dashboard in dashboards.get("DashboardSummaryList", []):
-        dashboard_id = dashboard["DashboardId"]
-        dashboard_name = dashboard.get("Name", "Unknown")
-        try:
-            response = quicksight.describe_dashboard(
-                AwsAccountId=ACCOUNT_ID,
-                DashboardId=dashboard_id
-            )
-            upload_to_s3("dashboard", dashboard_id, response, dashboard_name)
-        except quicksight.exceptions.InvalidParameterValueException as e:
-            logger.warning(f"[Skip] 「{dashboard_name}({dashboard_id})」 - {e}")
-        except Exception as e:
-            logger.error(f"[Error] 「{dashboard_name}({dashboard_id})」 - {e}")
-    logger.info("- ダッシュボードのバックアップ終了 -")
+    backup_quicksight_resource(
+        category="datasource",
+        list_func_name="list_data_sources",
+        list_key="DataSources",
+        describe_func_name="describe_data_source",
+        id_key="DataSourceId"
+    )
+    backup_quicksight_resource(
+        category="dataset",
+        list_func_name="list_data_sets",
+        list_key="DataSetSummaries",
+        describe_func_name="describe_data_set",
+        id_key="DataSetId"
+    )
+    backup_quicksight_resource(
+        category="analysis",
+        list_func_name="list_analyses",
+        list_key="AnalysisSummaryList",
+        describe_func_name="describe_analysis",
+        id_key="AnalysisId"
+    )
+    backup_quicksight_resource(
+        category="dashboard",
+        list_func_name="list_dashboards",
+        list_key="DashboardSummaryList",
+        describe_func_name="describe_dashboard",
+        id_key="DashboardId"
+    )
 
     return {
         "statusCode": 200,
