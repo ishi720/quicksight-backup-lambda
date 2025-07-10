@@ -1,6 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Lambda function for QuickSight backup
 
+Parameters:
+  LambdaExecutionRoleArn:
+    Type: String
+    Description: ARN of the IAM role used by the Lambda function
+
 Resources:
   QuicksightBackupFunction:
     Type: AWS::Lambda::Function
