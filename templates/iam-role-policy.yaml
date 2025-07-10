@@ -39,6 +39,8 @@ Resources:
               - quicksight:DescribeAnalysis
               - quicksight:ListDataSets
               - quicksight:DescribeDataSet
+              - quicksight:ListDataSources
+              - quicksight:DescribeDataSource
             Resource: "*"
           - Sid: AllowS3PutObjectForBackup
             Effect: Allow

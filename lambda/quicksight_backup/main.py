@@ -17,6 +17,32 @@ quicksight = boto3.client("quicksight", region_name=REGION)
 s3 = boto3.client("s3")
 
 def lambda_handler(event, context):
+    # データソース（Data Source）のバックアップ
+    logger.info("- データソースのバックアップ開始 -")
+    datasources = quicksight.list_data_sources(AwsAccountId=ACCOUNT_ID)
+    for datasource in datasources.get("DataSources", []):
+        datasource_id = datasource["DataSourceId"]
+        datasource_name = datasource.get("Name", "Unknown")
+        try:
+            response = quicksight.describe_data_source(
+                AwsAccountId=ACCOUNT_ID,
+                DataSourceId=datasource_id
+            )
+            key = f"{S3_PREFIX}datasource/datasource_{datasource_id}.json"
+            s3.put_object(
+                Bucket=S3_BUCKET,
+                Key=key,
+                Body=json.dumps(response, indent=2, default=str),
+                ContentType="application/json"
+            )
+            logger.info(f"[Success] 「{datasource_name}({datasource_id})」 > {key}")
+        except quicksight.exceptions.InvalidParameterValueException as e:
+            logger.warning(f"[Skip] 「{datasource_name}({datasource_id})」 - {e}")
+        except Exception as e:
+            logger.error(f"[Error] 「{datasource_name}({datasource_id})」 - {e}")
+    logger.info("- データソースのバックアップ終了 -")
+
+
     # データセット(DataSet)のバックアップ
     logger.info("- データセットのバックアップ開始 -")
     datasets = quicksight.list_data_sets(AwsAccountId=ACCOUNT_ID)
