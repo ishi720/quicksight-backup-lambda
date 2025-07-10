@@ -21,10 +21,3 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: events.amazonaws.com
       SourceArn: !GetAtt QuickSightBackupScheduleRule.Arn
-
-Outputs:
-  QuickSightBackupFunctionName:
-    Description: Name of the Lambda function
-    Value: !Ref QuicksightBackupFunction
-    Export:
-      Name: QuickSightBackupFunctionName
