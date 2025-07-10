@@ -15,3 +15,16 @@ Resources:
         ZipFile: |
           def lambda_handler(event, context):
               return {"statusCode": 200, "body": "OK"}
+
+Outputs:
+  QuickSightBackupFunctionArn:
+    Description: ARN of the QuickSight Lambda function
+    Value: !GetAtt QuicksightBackupFunction.Arn
+    Export:
+      Name: QuickSightBackupFunctionArn
+
+  QuickSightBackupFunctionName:
+    Description: Name of the QuickSight Lambda function
+    Value: !Ref QuicksightBackupFunction
+    Export:
+      Name: QuickSightBackupFunctionName

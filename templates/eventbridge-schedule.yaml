@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: EventBridge rule to trigger QuickSight backup Lambda daily at 12:00 JST
+
+Resources:
+  QuickSightBackupScheduleRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: quicksight-backup
+      Description: Run quicksight-backup2 Lambda function daily at 12:00 JST
+      ScheduleExpression: cron(0 3 * * ? *)
+      State: ENABLED
+      Targets:
+        - Id: quicksight-backup-lambda
+          Arn: !ImportValue QuickSightBackupFunctionArn
+          Input: "{}"
+
+  PermissionForEventsToInvokeLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !ImportValue QuickSightBackupFunctionName
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt QuickSightBackupScheduleRule.Arn
+
+Outputs:
+  QuickSightBackupFunctionName:
+    Description: Name of the Lambda function
+    Value: !Ref QuicksightBackupFunction
+    Export:
+      Name: QuickSightBackupFunctionName
