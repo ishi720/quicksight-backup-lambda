@@ -13,9 +13,6 @@ Resources:
       BucketName: !Ref BackupBucketName
       VersioningConfiguration:
         Status: Enabled
-      Tags:
-        - Key: Project
-          Value: QuickSightBackup
 
 Outputs:
   BackupBucketName:
