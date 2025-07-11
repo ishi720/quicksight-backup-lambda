@@ -9,8 +9,8 @@ logger.setLevel(logging.INFO)
 
 # S3設定（環境変数から取得）
 S3_BUCKET = os.environ.get("S3_BUCKET_NAME")
-S3_PREFIX = os.environ.get("S3_PREFIX", "quicksight_backup/")
-REGION = os.environ.get("AWS_REGION", "ap-northeast-1")
+S3_PREFIX = os.environ.get("S3_PREFIX")
+REGION = os.environ.get("AWS_REGION")
 ACCOUNT_ID = os.environ.get("AWS_ACCOUNT_ID")
 
 quicksight = boto3.client("quicksight", region_name=REGION)
@@ -37,9 +37,9 @@ def upload_to_s3(category, item_id, content, name):
             Body=json.dumps(content, indent=2, default=str),
             ContentType="application/json"
         )
-        logger.info(f"[Success] 「{name}({item_id})」 > {key}")
+        logger.info(f"S3アップロード成功: [{category.capitalize()}] {name} (ID: {item_id}) -> s3://{S3_BUCKET}/{key}")
     except Exception as e:
-        logger.error(f"[Error] S3 upload failed for 「{name}({item_id})」 - {e}")
+        logger.error(f"S3アップロード失敗: [{category.capitalize()}] {name} (ID: {item_id}) - エラー内容: {e}")
 
 def backup_quicksight_resource(category, list_func_name, list_key, describe_func_name, id_key, name_key="Name"):
     """
@@ -53,19 +53,19 @@ def backup_quicksight_resource(category, list_func_name, list_key, describe_func
         id_key (str): IDフィールドのキー（例: 'DataSetId'）
         name_key (str): 名前フィールドのキー（例: 'Name'）
     """
-    logger.info(f"- {category.capitalize()} のバックアップ開始 -")
+    logger.info(f"▼▼ {category.capitalize()} のバックアップ開始 ▼▼")
 
     try:
         list_func = getattr(quicksight, list_func_name)
         describe_func = getattr(quicksight, describe_func_name)
     except AttributeError as e:
-        logger.error(f"[Error] API関数の取得に失敗しました: {e}")
+        logger.error(f"API関数取得エラー: {e}")
         return
 
     try:
         resources = list_func(AwsAccountId=ACCOUNT_ID).get(list_key, [])
     except Exception as e:
-        logger.error(f"[Error] {category.capitalize()}一覧の取得に失敗しました: {e}")
+        logger.error(f"{category.capitalize()}一覧取得失敗: {e}")
         return
 
     for item in resources:
@@ -75,43 +75,51 @@ def backup_quicksight_resource(category, list_func_name, list_key, describe_func
             response = describe_func(AwsAccountId=ACCOUNT_ID, **{id_key: item_id})
             upload_to_s3(category, item_id, response, item_name)
         except quicksight.exceptions.InvalidParameterValueException as e:
-            logger.warning(f"[Skip] 「{item_name}({item_id})」 - {e}")
+            logger.warning(f"スキップ:「{item_name}({item_id})」 - {e}")
         except Exception as e:
-            logger.error(f"[Error] 「{item_name}({item_id})」 - {e}")
-    logger.info(f"- {category.capitalize()} のバックアップ終了 -")
+            logger.error(f"エラー: 「{item_name}({item_id})」 - {e}")
+    logger.info(f"▲▲ {category.capitalize()} のバックアップ終了 ▲▲")
 
 
 def lambda_handler(event, context):
-    backup_quicksight_resource(
-        category="datasource",
-        list_func_name="list_data_sources",
-        list_key="DataSources",
-        describe_func_name="describe_data_source",
-        id_key="DataSourceId"
-    )
-    backup_quicksight_resource(
-        category="dataset",
-        list_func_name="list_data_sets",
-        list_key="DataSetSummaries",
-        describe_func_name="describe_data_set",
-        id_key="DataSetId"
-    )
-    backup_quicksight_resource(
-        category="analysis",
-        list_func_name="list_analyses",
-        list_key="AnalysisSummaryList",
-        describe_func_name="describe_analysis",
-        id_key="AnalysisId"
-    )
-    backup_quicksight_resource(
-        category="dashboard",
-        list_func_name="list_dashboards",
-        list_key="DashboardSummaryList",
-        describe_func_name="describe_dashboard",
-        id_key="DashboardId"
-    )
+    try:
+        backup_quicksight_resource(
+            category="datasource",
+            list_func_name="list_data_sources",
+            list_key="DataSources",
+            describe_func_name="describe_data_source",
+            id_key="DataSourceId"
+        )
+        backup_quicksight_resource(
+            category="dataset",
+            list_func_name="list_data_sets",
+            list_key="DataSetSummaries",
+            describe_func_name="describe_data_set",
+            id_key="DataSetId"
+        )
+        backup_quicksight_resource(
+            category="analysis",
+            list_func_name="list_analyses",
+            list_key="AnalysisSummaryList",
+            describe_func_name="describe_analysis",
+            id_key="AnalysisId"
+        )
+        backup_quicksight_resource(
+            category="dashboard",
+            list_func_name="list_dashboards",
+            list_key="DashboardSummaryList",
+            describe_func_name="describe_dashboard",
+            id_key="DashboardId"
+        )
 
-    return {
-        "statusCode": 200,
-        "body": json.dumps("QuickSight backup completed.")
-    }
+        return {
+            "statusCode": 200,
+            "body": json.dumps("QuickSight backup completed.")
+        }
+
+    except Exception as e:
+        logger.error(f"バックアップ処理中に予期せぬエラーが発生しました: {e}", exc_info=True)
+        return {
+            "statusCode": 500,
+            "body": json.dumps(f"QuickSight backup failed: {str(e)}")
+        }
