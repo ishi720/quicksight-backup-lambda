@@ -13,6 +13,9 @@ Resources:
         - Id: quicksight-backup-lambda
           Arn: !ImportValue QuickSightBackupFunctionArn
           Input: "{}"
+      Tags:
+        - Key: Project
+          Value: QuickSightBackup
 
   PermissionForEventsToInvokeLambda:
     Type: AWS::Lambda::Permission
